@@ -2,16 +2,14 @@ package telesign
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
-// Retrieves the verification result.
+// GetStatusService Retrieves the verification result.
 // You make this call in your web application after users complete the authentication transaction (using either a call or sms).
 //
 // Telesign API docs: https://developer.telesign.com/docs/rest_api-verify-transaction-callback
-
 type GetStatusService service
 
 type GetStatusNumbering struct {
@@ -51,22 +49,6 @@ type GetStatus struct {
 }
 
 type getStatus GetStatus
-
-type getStatusUnmarshalHelper struct {
-	getStatus
-	Attributes *getStatus `json:"attributes"`
-}
-
-func (s *GetStatus) UnmarshalJSON(b []byte) error {
-	var helper getStatusUnmarshalHelper
-	helper.Attributes = &helper.getStatus
-	if err := json.Unmarshal(b, &helper); err != nil {
-		fmt.Println("ERROR: Unmarshaling error:", err)
-		return err
-	}
-	*s = GetStatus(helper.getStatus)
-	return nil
-}
 
 func (s *GetStatusService) Get(ctx context.Context, refID string) (*GetStatus, *http.Response, error) {
 

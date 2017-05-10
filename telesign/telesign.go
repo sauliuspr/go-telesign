@@ -9,6 +9,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+
+	"github.com/sauliuspr/go-telesign/auth"
 )
 
 const (
@@ -135,4 +137,28 @@ func (c *Client) Do(ctx context.Context, req *http.Request, resource interface{}
 
 func withContext(ctx context.Context, req *http.Request) (context.Context, *http.Request) {
 	return ctx, req.WithContext(ctx)
+}
+
+type APIAuthTransport struct {
+	CustomerID string
+	APIKey     string // API Secret Token
+
+	Transport http.RoundTripper
+}
+
+func (t *APIAuthTransport) Client() *http.Client {
+	return &http.Client{
+		Transport: t,
+	}
+}
+
+func (t *APIAuthTransport) getTransport() http.RoundTripper {
+	if t.Transport != nil {
+		return t.Transport
+	}
+	return http.DefaultTransport
+}
+
+func (t *APIAuthTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	return t.getTransport().RoundTrip(auth.GenerateTelesignHeaders(req, t.CustomerID, t.APIKey))
 }

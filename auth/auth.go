@@ -1,4 +1,4 @@
-package telesign
+package auth
 
 import (
 	"bytes"
@@ -14,14 +14,9 @@ import (
 	"time"
 )
 
-type APIAuthTransport struct {
-	CustomerID string
-	APIKey     string // API Secret Token
-
-	Transport http.RoundTripper
-}
-
-func compute(canonicalString, authMethod, secret string) string {
+// Compute HMAC 256 of Cannonical String
+//
+func Compute(canonicalString, authMethod, secret string) string {
 	data, err := base64.StdEncoding.DecodeString(secret)
 	if err != nil {
 		fmt.Println("ERROR: in Base64 ", err)
@@ -35,7 +30,9 @@ func compute(canonicalString, authMethod, secret string) string {
 	return base64.StdEncoding.EncodeToString(mac.Sum(nil))
 }
 
-func canonicalString(r *http.Request) string {
+// CanonicalString retrieves string from http Request
+//
+func CanonicalString(r *http.Request) string {
 	contentType := ""
 	uri := r.URL.EscapedPath()
 	if uri == "" {
@@ -62,7 +59,6 @@ func canonicalString(r *http.Request) string {
 		}, "\n")
 		return ret
 	}
-
 	return strings.Join([]string{
 		strings.ToUpper(r.Method),
 		contentType,
@@ -73,7 +69,9 @@ func canonicalString(r *http.Request) string {
 	}, "\n")
 }
 
-func (t *APIAuthTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+// GenerateTelesignHeaders with CusteomerID and apiKey
+//
+func GenerateTelesignHeaders(req *http.Request, customerID, apiKey string) *http.Request {
 
 	// If Request Body exist preserve it
 	var bodyBytes []byte
@@ -102,29 +100,16 @@ func (t *APIAuthTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 		// Generate Random String
 		b := make([]byte, 16)
 		if _, err := rand.Read(b); err != nil {
-			panic(err)
+			fmt.Println("Could not generate a random string", err)
+			return nil
 		}
-		//rClone.Header.Add("X-Ts-Nonce", fmt.Sprintf("%X", b))
+
 	}
-	sig := compute(canonicalString(rClone), "sha256", t.APIKey)
-	rClone.Header.Add("Authorization", fmt.Sprintf("TSA %s:%s", t.CustomerID, sig))
+	sig := Compute(CanonicalString(rClone), "sha256", apiKey)
+	rClone.Header.Add("Authorization", fmt.Sprintf("TSA %s:%s", customerID, sig))
 
 	if bodyBytes != nil {
 		rClone.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
 	}
-
-	return t.getTransport().RoundTrip(rClone)
-}
-
-func (t *APIAuthTransport) Client() *http.Client {
-	return &http.Client{
-		Transport: t,
-	}
-}
-
-func (t *APIAuthTransport) getTransport() http.RoundTripper {
-	if t.Transport != nil {
-		return t.Transport
-	}
-	return http.DefaultTransport
+	return rClone
 }

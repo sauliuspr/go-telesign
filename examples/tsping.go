@@ -22,7 +22,8 @@ func main() {
 	if err != nil {
 		fmt.Println("ERROR: API gave an error", err)
 	} else {
-		fmt.Printf("Telesign Response: %v", resp.Status)
-		fmt.Println("\nPinged at:", *ping.PingedAt)
+		fmt.Println("Telesign Response:", resp.Status)
+		fmt.Println("Pinged at:", *ping.PingedAt)
+		//	fmt.Println("Response:", *ping)
 	}
 }

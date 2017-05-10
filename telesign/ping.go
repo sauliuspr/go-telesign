@@ -2,14 +2,11 @@ package telesign
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
 // PingService handles communication with the simple API service /ping
 // It response with the data and signature string
-
 type PingService service
 
 // Representation of Ping service
@@ -20,22 +17,6 @@ type Ping struct {
 }
 
 type ping Ping
-
-type userUnmarshalHelper struct {
-	ping
-	Attributes *ping `json:"attributes"`
-}
-
-func (p *Ping) UnmarshalJSON(b []byte) error {
-	var helper userUnmarshalHelper
-	helper.Attributes = &helper.ping
-	if err := json.Unmarshal(b, &helper); err != nil {
-		fmt.Println("Unmarshaling error:", err)
-		return err
-	}
-	*p = Ping(helper.ping)
-	return nil
-}
 
 func (p *PingService) Get(ctx context.Context) (*Ping, *http.Response, error) {
 	req, err := p.client.NewRequest("GET", "ping", nil)
@@ -49,4 +30,8 @@ func (p *PingService) Get(ctx context.Context) (*Ping, *http.Response, error) {
 		return nil, resp, err
 	}
 	return rResp, resp, err
+}
+
+func (p Ping) String() string {
+	return Stringify(p)
 }
