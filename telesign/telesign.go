@@ -27,6 +27,7 @@ type Client struct {
 
 	// Telesign Services for talking to different parts of REST API
 	Ping         *PingService
+	Messaging    *MessagingService
 	SMSVerify    *SMSVerifyService
 	GetStatus    *GetStatusService
 	PhoneIDScore *PhoneIDScoreService
@@ -44,6 +45,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c := &Client{client: httpClient, BaseURL: baseURL, UserAgent: userAgent}
 	c.common.client = c
 	c.Ping = (*PingService)(&c.common)
+	c.Messaging = (*MessagingService)(&c.common)
 	c.SMSVerify = (*SMSVerifyService)(&c.common)
 	c.GetStatus = (*GetStatusService)(&c.common)
 	c.PhoneIDScore = (*PhoneIDScoreService)(&c.common)
@@ -65,6 +67,13 @@ func (c *Client) NewRequest(method, urlStr string, body io.Reader) (*http.Reques
 	req.Header.Add("User-Agent", c.UserAgent)
 
 	return req, nil
+}
+
+func cleanValues(v url.Values) url.Values {
+	if v == nil {
+		return url.Values{}
+	}
+	return v
 }
 
 type ErrorSource struct {

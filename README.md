@@ -14,13 +14,24 @@ Construct a new Telesign client, the use the various service on the client to
 access different part of th Telesign API. For example:
 
 ```go
-client := telesign.NewClient(nil)
 
 // send a SMS message
+ts := telesign.APIAuthTransport{
+    CustomerID: os.Getenv("TELESIGN_CUSTOMER_ID"),
+    APIKey:     os.Getenv("TELESIGN_API_KEY"),
+}
+ctx := context.Background()
+client := telesign.NewClient(ts.Client())
 
-sms, _, err := client.Messaging.SMS(ctx, "+14150001234", nil)
+msg, _, err := client.Messaging.Send(ctx, "+14150001234", "Greetings Gophers!", "MKT", nil)
+
+if err != nil {
+    fmt.Println("ERROR: Failed to send messag via Messaging Telesign API: ", err)
+} else {
+    fmt.Println("Result:", msg)
+}
 ```
 
 ### Authentication ###
 
-The go-telesign has a package tsauth to handle authentication. 
+The go-telesign has a separate package auth to handle authentication. 
