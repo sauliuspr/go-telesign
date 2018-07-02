@@ -40,7 +40,7 @@ func main() {
 		}
 
 		// Wait 5 sec
-		time.Sleep(10 * time.Second)
+		time.Sleep(5 * time.Second)
 
 		status, resp, err = client.GetStatus.Get(ctx, *sms.ReferenceID)
 		if err != nil {
@@ -75,7 +75,7 @@ func main() {
 
 		}
 		// Wait 5 sec
-		time.Sleep(20 * time.Second)
+		time.Sleep(5 * time.Second)
 
 		status, resp, err = client.GetStatus.Get(ctx, *sms.ReferenceID)
 		if err != nil {

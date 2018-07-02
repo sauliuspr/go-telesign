@@ -29,7 +29,7 @@ func (s *MessagingService) Send(ctx context.Context, phoneNumber string, message
 	v.Set("message_type", message_type)
 
 	data := v.Encode()
-	req, err := s.client.NewRequest("POST", "/v1/verify/sms", bytes.NewBuffer([]byte(data)))
+	req, err := s.client.NewRequest("POST", "/v1/messaging", bytes.NewBuffer([]byte(data)))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -47,4 +47,23 @@ func (s *MessagingService) Send(ctx context.Context, phoneNumber string, message
 
 func (m Messaging) String() string {
 	return Stringify(m)
+}
+
+func (s *MessagingService) Get(ctx context.Context, refID string) (*Messaging, *http.Response, error) {
+
+	rResp := new(Messaging)
+
+	req, err := s.client.NewRequest("GET", "/v1/messaging/"+refID, nil)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	resp, err := s.client.Do(ctx, req, rResp)
+	defer resp.Body.Close()
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return rResp, resp, err
 }

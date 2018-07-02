@@ -3,7 +3,10 @@ package telesign
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
+
+	"github.com/sauliuspr/tsclient/telesign"
 )
 
 var (
@@ -22,12 +25,22 @@ var (
 // setup sets up a test HTTP server along with a telesign.Client that is configured to talk to that test server.
 // Tests should register handlers on mux which provide mock responses for the API method being tested.
 func setup() {
+
+	ts := telesign.APIAuthTransport{
+		CustomerID: os.Getenv("TELESIGN_CUSTOMER_ID"),
+		APIKey:     os.Getenv("TELESIGN_API_KEY"),
+	}
+
+	if ts.CustomerID != "" && ts.APIKey != "" {
+		return
+	}
+
 	// Test server
 	testMux = http.NewServeMux()
 	testServer = httptest.NewServer(testMux)
 
 	// Cachet client configured to use test server
-	testClient = NewClient(nil)
+	testClient = NewClient(ts)
 }
 
 // teardown closes the test HTTP server.
